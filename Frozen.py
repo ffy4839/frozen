@@ -421,9 +421,10 @@ def if_lead(serss):
         print('无前导码, 串口波特率为9600')
 
 if __name__ == '__main__':
-    # try:
+    try:
         m = main()
         m.run()
-    # except Exception as e:
-    #      print(e)
-    #      quit()
+    except Exception as e:
+         print(e)
+         input()
+         quit()
