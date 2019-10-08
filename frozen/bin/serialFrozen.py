@@ -1,16 +1,16 @@
 from bin.func import *
 
 
-
 class ser(serial.Serial):
-    def __init__(self,port):
+    def __init__(self,port, baudrate,interval=30):
         super(ser, self).__init__()
         self.port = port
+        self.baudrate = baudrate
+        self.interval = interval
         self.open_ser()
         self.parse_data = 'recv'
 
     def open_ser(self):
-        self.baudrate = BAUDRATE
         self.timeout = 0.5
         self.open()
 
@@ -22,20 +22,22 @@ class ser(serial.Serial):
                 self.flushOutput()
                 self.write(data)
             except Exception as e:
-                print('{};{},串口发送错误'.format(timen(), e))
+                log('{}, 串口发送错误'.format(e))
                 quit()
         else:
             self.open_ser()
 
-    def recv(self, times=INTERVAL):
+    def recv(self):
         self.isopened()
         self.flushInput()
-        for i in range(times):
+        times = self.interval
+        for i in range(times-1):
             inwaiting = self.in_waiting
             if inwaiting:
                 recv = self.read_all()
                 self.recv_parse(recv)
             time.sleep(1)
+
         # recv_data_all = self.parse_data
         # self.parse_data = 'recv'
         # return
@@ -46,7 +48,7 @@ class ser(serial.Serial):
                 datas = binascii.hexlify(data).decode('utf-8').upper()
                 re_com = re.compile('68.*16')
                 datas = re.findall(re_com, datas)[0]
-                print_save(' '*5+'|接收:'+datas)
+                show('recv:'+str(datas).replace('\n','\t'))
             except:
                 self.recv_parse(data,'ascii')
 
@@ -54,7 +56,7 @@ class ser(serial.Serial):
             try:
                 datas = data.decode('ascii')
                 # self.parse_data += datas + '\n'
-                print_save(' '*5+'|接收:'+datas)
+                show('recv:'+str(datas).replace('\n','\t'))
             except:
                 self.recv_parse(data,'GBK')
 
@@ -62,9 +64,9 @@ class ser(serial.Serial):
             try:
                 datas = data.decode('GBK').replace('\n','').replace('\r','')
                 # self.parse_data += datas + '\n'
-                print_save(' '*5+'|接收:'+datas)
+                show('recv:'+str(datas).replace('\n','\t'))
             except:
-                print_save(' '*5+'|接收:'+str(data))
+                show('recv:'+str(data).replace('\n','\t'))
 
     def sopen(self):
         if not self.is_open:

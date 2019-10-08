@@ -1,12 +1,53 @@
 from bin.func import *
 
 class pro():
-    def __init__(self, mode):
+    def __init__(self, mode, leader):
+        self.leader = leader + 'FEFEFEFEFE'
+        self.choose(mode)
+
+    def run(self, set_time, add = 5):
+        psetTime = self.change_stamp2format(set_time-add,st='%y%m%d%H%M%S')
+        pnowTime = self.change_stamp2format(time.time(),st='%y%m%d%H%M%S')
+        pbase = self.phead + pnowTime + self.pmid + psetTime
+        pcheck = self.checkSUM(pbase)
+        res = (pbase + pcheck + self.pend).replace(' ','').replace('\n','').replace('\t','')
+        show('send set time:{}\t{}'.format(self.change_stamp2format(set_time-add,st='%Y-%m-%d %H:%M:%S'), res))
+        return (self.leader+res).replace('\n','').replace('\t','')
+
+    def choose(self, mode):
+        if mode == '1':
+            self.minyong()
+        elif mode == '2':
+            self.shangyong()
+        else:
+            self.others(mode)
+
+    def minyong(self):
+        self.phead = '68 00 00 00 01 00 00 68 04 10 00'
+        self.pmid = '16 21 C6 00'
+        self.pend = '16'
+
+    def shangyong(self):
+        self.phead = '68 FF FF FF FF FF FF 68 04 10 00'
+        self.pmid = '02 03 AA 00'
+        self.pend = '16'
+
+    def others(self, mode):
         pass
 
-    def run(self, set_time):
-        pass
+    def checkSUM(self,data):
+        data = data.replace(' ','').replace('\n','').replace('\t','')
+        sum = 0
+        for i in range(0, len(data), 2):
+            sum += int(data[i:i+2], 16)
+        res = hex(sum)[2:].rjust(2,'0')[-2:].upper()
+        return res
 
+    def change_format2stamp(self, data, st='%Y%m%d%H%M%S'):
+        return time.mktime(time.strptime(data,st))
+
+    def change_stamp2format(self, data, st='%Y%m%d%H%M%S'):
+        return time.strftime(st,time.localtime(data))
 
 class timeList():
     def __init__(self,
@@ -19,6 +60,7 @@ class timeList():
         self.day_nums = day_nums
         self.hour_nums = hour_nums
         self.frozen_month = frozen_month
+
 
     def run(self):
         base_time = self.base_time()
@@ -39,12 +81,12 @@ class timeList():
 
     def create_hour_list(self, base_time):
         res = [(base_time - (i * 3600)) for i in range(self.hour_nums+1)]
-        print('小时：{}'.format(len(res)))
+        # print('hour：{}'.format(len(res)))
         return res
 
     def create_day_list(self, base_time):
         res = [(base_time - (i * 3600 * 24)) for i in range(self.day_nums+1)]
-        print('day：{}'.format(len(res)))
+        # print('day：{}'.format(len(res)))
         return res
 
     def create_month_list(self, base_time):
@@ -53,7 +95,7 @@ class timeList():
             base_time = self.select_month(base_time)
             res.append(base_time)
             self.month_nums -= 1
-        print('month：{}'.format(len(res)))
+        # print('month：{}'.format(len(res)))
         return res
 
     def select_month(self, base_time):
